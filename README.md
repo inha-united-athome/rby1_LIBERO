@@ -1,5 +1,9 @@
 # RBY1 Robot Integration for LIBERO Benchmark
 
+> ⚠️ **Work In Progress (개발 중)**  
+> This project is currently under active development. Features may be incomplete or change without notice.  
+> 이 프로젝트는 현재 개발 중입니다. 기능이 불완전하거나 예고 없이 변경될 수 있습니다.
+
 This repository contains the integration of the **RBY1 humanoid robot** into the **LIBERO benchmark** environment for evaluating Vision-Language-Action (VLA) models, specifically **MolmoAct**.
 
 ## Overview
@@ -11,6 +15,66 @@ This project adapts the [MolmoAct](https://github.com/allenai/MolmoAct) VLA mode
 - LIBERO benchmark environment adaptation for RBY1
 - Evaluation scripts for MolmoAct VLA model on RBY1
 - Trajectory visualization for debugging and analysis
+
+## Quick Start: Loading RBY1 in robosuite
+
+### Basic Example
+```python
+import robosuite as suite
+
+# Create environment with RBY1 robot
+env = suite.make(
+    env_name="Lift",                    # or any robosuite task
+    robots="RBY1Single",                # Use RBY1 single-arm robot
+    has_renderer=True,                  # Enable visualization
+    has_offscreen_renderer=False,
+    use_camera_obs=False,
+    controller_configs=suite.load_controller_config(
+        default_controller="OSC_POSE"
+    ),
+)
+
+# Reset and run
+obs = env.reset()
+for _ in range(100):
+    action = env.action_space.sample()  # Random action
+    obs, reward, done, info = env.step(action)
+    env.render()
+env.close()
+```
+
+### Using Custom Controller Config
+```python
+import robosuite as suite
+import json
+
+# Load RBY1-specific controller config
+controller_config = suite.load_controller_config(
+    custom_fpath="robosuite/robosuite/controllers/config/robots/default_rby1_single.json"
+)
+
+env = suite.make(
+    env_name="Lift",
+    robots="RBY1Single",
+    controller_configs=controller_config,
+    has_renderer=True,
+)
+```
+
+### Accessing Robot State
+```python
+obs = env.reset()
+
+# Get end-effector position and orientation
+eef_pos = env.sim.data.site_xpos[env.robots[0].eef_site_id]
+eef_quat = env.robots[0].controller.ee_ori_mat
+
+# Get joint positions
+joint_pos = env.robots[0]._joint_positions
+
+print(f"EEF Position: {eef_pos}")
+print(f"Joint Positions: {joint_pos}")
+```
 
 ## Installation
 
@@ -143,6 +207,25 @@ MolmoAct outputs unnormalized delta actions. OSC controller scales them:
 actual_delta = action × output_max
 e.g., action=0.8 → delta=0.8×0.05=0.04m
 ```
+
+## Current Status & Known Issues
+
+### ✅ Completed
+- RBY1 robot model integration with robosuite
+- OSC_POSE controller configuration
+- Initial joint position optimization
+- LIBERO environment adaptation
+- Basic trajectory visualization
+
+### 🔄 In Progress
+- VLA model fine-tuning for RBY1
+- Task success rate evaluation
+- Gripper action calibration
+
+### ❌ Known Issues
+- First few steps may show delta=0 (OSC stabilization)
+- Some tasks may require additional init_qpos tuning
+- Gripper timing differences from Panda
 
 ## Troubleshooting
 
