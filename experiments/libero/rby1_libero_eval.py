@@ -63,9 +63,15 @@ def renormalize_action_for_controller(action, unnorm_key):
     if isinstance(action, list):
         action = np.array(action, dtype=float)
     
-    # LIBERO spatial q01/q99 values (from model config)
+    # LIBERO q01/q99 values (from model config)
     # These are the same values used in parse_action for unnormalization
     q01_q99_stats = {
+        "molmoact": {
+            "q01": np.array([-0.01538565568625927, -0.021047022193670273, -0.01688069850206375,
+                           -0.044314172118902206, -0.03890235349535942, -0.04788423702120781, 0.0]),
+            "q99": np.array([0.014661382883787155, 0.026515591889619827, 0.021398313343524933,
+                           0.04216696694493294, 0.03401297703385353, 0.04957397282123566, 1.0])
+        },
         "libero_spatial_no_noops_modified": {
             "q01": np.array([-0.7454732114076613, -0.6616071462631226, -0.9375, 
                            -0.1071428582072258, -0.20678570866584778, -0.1842857152223587, 0.0]),
@@ -349,6 +355,7 @@ def step(img, wrist_img, language_instruction, model, processor, unnorm_key):
 
 
     # Try task-specific unnorm_key first; fall back to whatever the model has
+    actual_unnorm_key = unnorm_key
     try:
         action = model.parse_action(generated_text, unnorm_key=unnorm_key)
     except ValueError:
@@ -358,9 +365,10 @@ def step(img, wrist_img, language_instruction, model, processor, unnorm_key):
             fallback_key = available_keys[0]
             print(f"Falling back to unnorm_key={fallback_key!r}")
             action = model.parse_action(generated_text, unnorm_key=fallback_key)
+            actual_unnorm_key = fallback_key
         else:
             raise
-    print(f"generated action: {action}")
+    print(f"generated action: {action} (unnorm_key={actual_unnorm_key})")
 
     if (
         action is None
@@ -372,7 +380,7 @@ def step(img, wrist_img, language_instruction, model, processor, unnorm_key):
 
 
 
-    return action, annotated, trace
+    return action, annotated, trace, actual_unnorm_key
 
 
 
@@ -474,12 +482,13 @@ def eval_libero(args, processor, model, task_suite_name, checkpoint, seed, model
                 wait = False
                 traj = None
                 try:
-                    action_matrix, annotated_image, traj = step(agent_img, wrist_img, task_description, model, processor, unnorm_key)
+                    action_matrix, annotated_image, traj, actual_unnorm_key = step(agent_img, wrist_img, task_description, model, processor, unnorm_key)
                 except Exception as e:
                     print(e)
                     action_matrix = np.zeros((1, 7), dtype=float)
                     action_matrix[:, -1] = last_gripper_state
                     annotated_image = agent_img
+                    actual_unnorm_key = unnorm_key
                     wait = True
                     print(f"error: {e}")
 
@@ -524,43 +533,30 @@ def eval_libero(args, processor, model, task_suite_name, checkpoint, seed, model
                     
                     single_action = np.asarray(single_action)
                     
-                    # === MolmoAct action 처리 (Panda와 동일하게) ===
-                    # 재정규화 없이 unnormalized action 그대로 사용
-                    # OSC 컨트롤러가 action * output_max로 스케일링
-                    print(f"Raw action: {single_action[:6].round(4)}")
-                    
-                    # === RBY1 액션 변환 ===
-                    # MolmoAct는 Panda 로봇용으로 학습되었으므로, RBY1에 맞게 변환 필요
+                    # === MolmoAct action 처리 ===
+                    # parse_action → unnormalized (q01/q99) → renormalize → [-1, 1] for OSC
                     single_action = np.array(single_action, dtype=float)
+                    
+                    # unnormalized → [-1, 1] 재정규화 (OSC 컨트롤러 입력 범위)
+                    # parse_action에서 실제 사용된 키와 동일한 키로 re-normalize
+                    single_action = renormalize_action_for_controller(single_action, actual_unnorm_key)
+                    
+                    # 그리퍼 처리: [0,1] → [-1,+1], 반전
                     single_action = normalize_gripper_action(single_action, binarize=True)
                     single_action = invert_gripper_action(single_action)
-                    print(f"After gripper norm: {single_action[:6].round(4)}, gripper: {single_action[-1]:.4f}")
-                    
-                    # === 그리퍼 액션 처리 ===
-                    # LIBERO 데이터셋: 0=close, 1=open
-                    # normalize_gripper_action: 0 → -1, 1 → +1
-                    # invert_gripper_action: -1 → +1 (close), +1 → -1 (open)
-                    # robosuite convention: -1=open, +1=close
-                    # FORCE CLOSE GRIPPER for grasping
-                    #single_action[-1] = 1.0  # Force close gripper
-                    
-                    print(f"Final action: {single_action.round(4)}, gripper: {single_action[-1]} ({'close' if single_action[-1] > 0 else 'open'})")
-                    
-                    # === DEBUG: Print EEF position before step ===
-                    try:
-                        eef_pos_before = env.env.robots[0].recent_ee_pose["right"].last[:3]
-                        print(f"EEF pos before step: {eef_pos_before.round(4)}")
-                    except Exception as e:
-                        print(f"Cannot get EEF pos: {e}")
+                    print(f"Action → ctrl: pos={single_action[:3].round(3)}, ori={single_action[3:6].round(3)}, grip={single_action[-1]:.0f}")
                     
                     obs, _, done, _ = env.step(single_action)
                     
-                    # === DEBUG: Print EEF position after step ===
+                    # EEF 누적 이동 추적
                     try:
-                        eef_pos_after = env.env.robots[0].recent_ee_pose["right"].last[:3]
-                        print(f"EEF pos after step: {eef_pos_after.round(4)}, delta: {(eef_pos_after - eef_pos_before).round(4)}")
+                        eef_pos = env.env.robots[0].recent_ee_pose["right"].last[:3]
+                        if not hasattr(env, '_eef_init'):
+                            env._eef_init = eef_pos.copy()
+                        cumul = eef_pos - env._eef_init
+                        print(f"EEF pos: {eef_pos.round(4)}, cumul_delta: {cumul.round(4)} ({np.linalg.norm(cumul)*1000:.1f}mm)")
                     except Exception as e:
-                        print(f"Cannot get EEF pos: {e}")
+                        pass
                     
                     visualize = get_libero_agentview_image(obs, resize_size)
                     #visualize = get_libero_image(obs, resize_size)

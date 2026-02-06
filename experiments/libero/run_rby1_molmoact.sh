@@ -41,10 +41,14 @@ esac
 # Paths
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKSPACE="$(dirname "$(dirname "$SCRIPT_DIR")")"
+LIBERO_DIR="${WORKSPACE}/experiments/LIBERO"
+
+# Also check the molmoact copy of LIBERO (common editable install location)
+MOLMOACT_LIBERO_DIR="$(dirname "$WORKSPACE")/molmoact/experiments/LIBERO"
 
 # Environment setup
 export DISPLAY="${DISPLAY:-:1}"
-export PYTHONPATH="${SCRIPT_DIR}:${PYTHONPATH}"
+export PYTHONPATH="${SCRIPT_DIR}:${LIBERO_DIR}:${MOLMOACT_LIBERO_DIR}:${PYTHONPATH}"
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 export TF_CPP_MIN_LOG_LEVEL=3
 
@@ -64,7 +68,7 @@ echo "============================================="
 #   2) self.config.float32_attention should be self.float32_attention (in ViT attention)
 echo "[patch] Checking MolmoAct model code for known issues..."
 MOLMOACT_CACHE="$HOME/.cache/huggingface/modules/transformers_modules/allenai"
-for MODEL_DIR in "$MOLMOACT_CACHE"/MolmoAct-*/; do
+for MODEL_DIR in "$MOLMOACT_CACHE"/MolmoAct*/; do
     if [ -d "$MODEL_DIR" ]; then
         for MFILE in "$MODEL_DIR"*/modeling_molmoact.py; do
             if [ -f "$MFILE" ]; then

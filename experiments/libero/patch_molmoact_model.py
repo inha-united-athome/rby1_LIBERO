@@ -45,7 +45,7 @@ def patch_modeling_file(filepath: str) -> bool:
 
 def main():
     cache_dir = os.path.expanduser("~/.cache/huggingface/modules/transformers_modules/allenai")
-    pattern = os.path.join(cache_dir, "MolmoAct-*", "*", "modeling_molmoact.py")
+    pattern = os.path.join(cache_dir, "MolmoAct*", "*", "modeling_molmoact.py")
     
     files = glob.glob(pattern)
     if not files:

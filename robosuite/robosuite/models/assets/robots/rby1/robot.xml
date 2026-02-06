@@ -1658,7 +1658,10 @@
                                                                     <geom type="mesh" mesh="EE_FINGER_0" rgba="0.74902 0.74902 0.74902 1" contype="0" conaffinity="0" group="1" name="static_r_f2_0" />
                                                                     <geom type="mesh" mesh="EE_FINGER_1" rgba="0.27451 0.27451 0.27451 1" contype="0" conaffinity="0" group="1" name="static_r_f2_1" />
                                                                 </body>
-                                                                <body name="right_eef" pos="0 0 -0.1261" quat="1 0 0 0" />
+                                                                <body name="right_eef" pos="0 0 -0.1261" quat="1 0 0 0">
+                                                                    <camera mode="fixed" name="eye_in_right_hand" pos="0.05 0 0" quat="0 0.707108 0.707108 0" fovy="75"/>
+                                                                    <geom name="eye_in_right_hand_vis" type="sphere" size="0.01" pos="0.05 0 0" rgba="0 1 0 0.5" group="1" contype="0" conaffinity="0"/>
+                                                                </body>
                                                             </body>
                                                         </body>
                                                     </body>
@@ -1954,6 +1957,8 @@
                                             <geom class="collision" rgba="0.722617 0.63049 0.843587 1" mesh="PAN_TILT_3_collision_36" />
                                             <geom class="collision" rgba="0.576555 0.623383 0.329205 1" mesh="PAN_TILT_3_collision_37" />
                                             <geom class="collision" rgba="0.543002 0.896731 0.340516 1" mesh="PAN_TILT_3_collision_38" />
+                                            <camera mode="fixed" name="eye_in_head" pos="0.05 0 0.03" quat="0.5 0.5 -0.5 -0.5" fovy="75"/>
+                                            <geom name="eye_in_head_vis" type="sphere" size="0.01" pos="0.05 0 0.03" rgba="0 0 1 0.5" group="1" contype="0" conaffinity="0"/>
                                         </body>
                                     </body>
                                 </body>
