@@ -8,6 +8,8 @@ This repository contains the integration of the **RBY1 humanoid robot** into the
 
 ## Overview
 
+![Pick Task](robosuite.jpg)
+
 ![Pick Task](pick.jpg)
 
 This project adapts the [MolmoAct](https://github.com/allenai/MolmoAct) VLA model (originally trained on Panda robot) to work with the RBY1 humanoid robot in the [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO) simulation environment built on [robosuite](https://github.com/ARISE-Initiative/robosuite).
