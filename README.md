@@ -4,7 +4,7 @@
 > This project is currently under active development. Features may be incomplete or change without notice.  
 > 이 프로젝트는 현재 개발 중입니다. 기능이 불완전하거나 예고 없이 변경될 수 있습니다.
 
-This repository contains the integration of the **RBY1 humanoid robot** into the **LIBERO benchmark** environment for evaluating Vision-Language-Action (VLA) models, specifically **MolmoAct**.
+This repository contains the integration of the **RBY1 v1.1 humanoid robot** into the **LIBERO benchmark** environment for evaluating Vision-Language-Action (VLA) models, specifically **MolmoAct**.
 
 ## Overview
 
@@ -18,133 +18,136 @@ This repository contains the integration of the **RBY1 humanoid robot** into the
 This project adapts the [MolmoAct](https://github.com/allenai/MolmoAct) VLA model (originally trained on Panda robot) to work with the RBY1 humanoid robot in the [LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO) simulation environment built on [robosuite](https://github.com/ARISE-Initiative/robosuite).
 
 ### Key Features
-- RBY1 robot model integration with robosuite
-- LIBERO benchmark environment adaptation for RBY1
-- Evaluation scripts for MolmoAct VLA model on RBY1
-- Trajectory visualization for debugging and analysis
+- **6 robot variants** — Full body, fixed lower body, both arms, right arm, left arm, legacy single-arm
+- **Visual gripper meshes** — Realistic EE_BODY + EE_FINGER rendering (not just collision boxes)
+- **Static EE visuals** — Non-gripper arms display visual end-effector bodies
+- **OSC_POSE controller** — Cartesian delta control optimized for table-top manipulation
+- **LIBERO compatibility** — Backward-compatible `RBY1Single` alias, table offset presets
+- **Automatic setup script** — One-command installation into any robosuite
 
-## Quick Start: Loading RBY1 in robosuite
+## Robot Variants
+
+| Variant | Active Parts | Controller | Use Case |
+|---------|-------------|-----------|----------|
+| `RBY1` | Wheels + Torso + Both Arms + Head | JOINT_POSITION | Full-body research |
+| `RBY1FixedLowerBody` | Torso + Both Arms + Head | JOINT_POSITION | Upper-body manipulation |
+| `RBY1BothArms` | Both Arms only | OSC_POSE (x2) | Bimanual tasks |
+| `RBY1RightArm` | Right Arm only | OSC_POSE | Single-arm tasks |
+| `RBY1LeftArm` | Left Arm only | OSC_POSE | Single-arm tasks |
+| `RBY1Single` | = `RBY1RightArm` alias | OSC_POSE | LIBERO backward compat |
+
+## Quick Start
+
+### Installation
+
+1. **Install robosuite** (if not already installed):
+```bash
+pip install robosuite==1.5.2
+```
+
+2. **Clone and install RBY1:**
+```bash
+git clone https://github.com/inha-united-athome/rby1_LIBERO.git
+cd rby1_LIBERO
+python setup_robosuite.py
+```
+
+The setup script automatically:
+- Copies robot model, gripper, meshes, and controller configs
+- Patches `__init__.py` registration files
+- Patches `manipulator_model.py` for left-arm support
+
+To install into a specific robosuite path (e.g., a virtualenv):
+```bash
+python setup_robosuite.py --path /path/to/venv/lib/python3.10/site-packages/robosuite
+```
 
 ### Basic Example
 ```python
 import robosuite as suite
 
-# Create environment with RBY1 robot
+# Create environment with RBY1 right arm
 env = suite.make(
-    env_name="Lift",                    # or any robosuite task
-    robots="RBY1Single",                # Use RBY1 single-arm robot
-    has_renderer=True,                  # Enable visualization
+    env_name="Lift",
+    robots="RBY1RightArm",     # or "RBY1Single" for LIBERO compat
+    has_renderer=True,
     has_offscreen_renderer=False,
     use_camera_obs=False,
-    controller_configs=suite.load_controller_config(
-        default_controller="OSC_POSE"
-    ),
 )
 
-# Reset and run
 obs = env.reset()
 for _ in range(100):
-    action = env.action_space.sample()  # Random action
+    action = env.action_space.sample()
     obs, reward, done, info = env.step(action)
     env.render()
 env.close()
 ```
 
-### Using Custom Controller Config
+### All Variants
 ```python
 import robosuite as suite
-import json
 
-# Load RBY1-specific controller config
-controller_config = suite.load_controller_config(
-    custom_fpath="robosuite/robosuite/controllers/config/robots/default_rby1_single.json"
-)
+# Single-arm variants (FixedBaseRobot, OSC_POSE)
+for robot in ["RBY1RightArm", "RBY1LeftArm", "RBY1Single"]:
+    env = suite.make("Lift", robots=robot)
+    env.reset()
+    print(f"{robot}: action_dim={env.action_spec[0].shape}")
+    env.close()
 
-env = suite.make(
-    env_name="Lift",
-    robots="RBY1Single",
-    controller_configs=controller_config,
-    has_renderer=True,
-)
-```
+# Both arms (FixedBaseRobot, OSC_POSE x 2)
+env = suite.make("Lift", robots="RBY1BothArms")
+env.reset()
+print(f"BothArms: action_dim={env.action_spec[0].shape}")
+env.close()
 
-### Accessing Robot State
-```python
-obs = env.reset()
-
-# Get end-effector position and orientation
-eef_pos = env.sim.data.site_xpos[env.robots[0].eef_site_id]
-eef_quat = env.robots[0].controller.ee_ori_mat
-
-# Get joint positions
-joint_pos = env.robots[0]._joint_positions
-
-print(f"EEF Position: {eef_pos}")
-print(f"Joint Positions: {joint_pos}")
-```
-
-## Installation
-
-### Prerequisites
-- Python 3.10+
-- CUDA-compatible GPU (recommended)
-- MuJoCo physics engine
-
-### Setup
-
-1. **Clone this repository:**
-```bash
-git clone https://github.com/RB3159/rby1_LIBERO.git
-cd rby1_LIBERO
-```
-
-2. **Install robosuite with RBY1 support:**
-```bash
-cd robosuite
-pip install -e .
-```
-
-3. **Install LIBERO:**
-```bash
-cd experiments/LIBERO
-pip install -e .
-```
-
-4. **Install MolmoAct dependencies:**
-```bash
-pip install transformers torch torchvision
-pip install scipy opencv-python pillow
+# Full body (LeggedRobot, JOINT_POSITION)
+env = suite.make("Lift", robots="RBY1")
+env.reset()
+print(f"Full RBY1: action_dim={env.action_spec[0].shape}")
+env.close()
 ```
 
 ## Project Structure
 
 ```
 rby1_LIBERO/
-├── robosuite/                          # Modified robosuite with RBY1 support
+├── setup_robosuite.py                          # Auto-install script
+├── test_rby1_robosuite.py                      # Visual test demo
+├── robosuite/                                  # RBY1 files for robosuite
 │   └── robosuite/
-│       ├── models/robots/manipulators/
-│       │   └── rby1_single_robot.py    # RBY1 robot model definition
-│       └── controllers/config/robots/
-│           └── default_rby1_single.json # RBY1 OSC controller config
+│       ├── controllers/config/robots/
+│       │   ├── default_rby1_single.json        # OSC_POSE (single/both-arms)
+│       │   └── default_rby1.json               # JOINT_POSITION (full body)
+│       ├── models/
+│       │   ├── robots/manipulators/
+│       │   │   └── rby1_robot.py               # All 6 variant classes
+│       │   ├── grippers/
+│       │   │   └── rby1_gripper.py             # Gripper Python class
+│       │   └── assets/
+│       │       ├── robots/rby1/
+│       │       │   ├── robot.xml               # Main MJCF model (~1985 lines)
+│       │       │   └── meshes/*.obj            # Robot link meshes
+│       │       └── grippers/
+│       │           ├── rby1_gripper.xml        # Gripper MJCF
+│       │           └── meshes/rby1_gripper/    # Gripper visual meshes
 ├── experiments/
 │   ├── libero/
-│   │   ├── rby1_libero_eval.py         # RBY1 evaluation script
-│   │   └── run_libero_eval.py          # Original Panda evaluation
-│   └── LIBERO/                         # LIBERO benchmark (submodule)
-│       └── libero/envs/
-│           └── bddl_base_domain.py     # Modified for RBY1 positioning
+│   │   ├── rby1_libero_eval.py                 # LIBERO evaluation script
+│   │   └── rby1_libero_utils.py                # Utilities
+│   └── LIBERO/                                 # LIBERO benchmark
 └── rby1a/
-    └── mujoco/                         # RBY1 MuJoCo model files
+    └── mujoco/                                 # Original RBY1 MuJoCo assets
 ```
 
 ## RBY1 Robot Configuration
 
 ### Initial Joint Configuration (init_qpos)
-The RBY1 robot's initial arm configuration is optimized to match Panda's EEF orientation:
+Optimized so the gripper points downward (matching Panda EEF orientation):
 
 ```python
-# Target: EEF Euler ≈ [0, 7, 0] degrees (gripper pointing down)
-r_arm_qpos = np.array([-0.35, -0.60, -1.10, -1.00, -3.00, -1.74, -2.00])
+# Target: EEF Euler ~ [0, 7, 0] degrees (gripper pointing down)
+RIGHT_ARM_QPOS = [-0.35, -0.60, -1.10, -1.00, -3.00, -1.74, -2.00]
+LEFT_ARM_QPOS  = [-0.35,  0.60,  1.10, -1.00,  3.00, -1.74,  2.00]
 ```
 
 ### Joint Definitions
@@ -187,71 +190,49 @@ python rby1_libero_eval.py \
 
 **Available task suites:**
 - `spatial` - Spatial reasoning tasks
-- `object` - Object manipulation tasks  
+- `object` - Object manipulation tasks
 - `goal` - Goal-oriented tasks
 - `10` - 10-task benchmark
 
-## Key Modifications from Original
-
-### 1. Robot Base Positioning
-RBY1 requires a y-axis offset due to its different kinematic structure:
-```python
-# In bddl_base_domain.py
-if "RBY1Single" in robot_name:
-    y_offset = 0.45  # RBY1 needs Y offset
-else:
-    y_offset = 0.0   # Panda at origin
+### Visual Test
+```bash
+DISPLAY=:1 python test_rby1_robosuite.py
 ```
 
-### 2. EEF Orientation Matching
-init_qpos optimized so RBY1's EEF orientation matches Panda:
-- **Panda EEF Euler:** [0, 7, 0] degrees
-- **RBY1 EEF Euler:** [~0, ~6, ~3] degrees (after optimization)
+## Technical Details
 
-### 3. Action Processing
-MolmoAct outputs unnormalized delta actions. OSC controller scales them:
-```
-actual_delta = action × output_max
-e.g., action=0.8 → delta=0.8×0.05=0.04m
-```
+### Key Modifications from Original robosuite
+
+1. **Robot Base Positioning** — Table-type-aware offsets for LIBERO environments
+2. **Transparent Collision Geoms** — `contact_geom_rgba = [0, 0, 0, 0]` prevents green collision overlay
+3. **Static EE Visuals** — Non-gripper arms show visual-only end-effector bodies
+4. **Left-Arm Mapping** — Physical left arm mapped to robosuite `arms=["right"]` slot
+5. **ManipulatorModel Patch** — `getattr(self.__class__, "arms", ["right"])` for custom arm support
 
 ## Current Status & Known Issues
 
-### ✅ Completed
-- RBY1 robot model integration with robosuite
+### Completed
+- RBY1 v1.1 full robot model with 6 variants
 - OSC_POSE controller configuration
-- Initial joint position optimization
+- Visual gripper meshes (EE_BODY + EE_FINGER)
+- Static EE visuals for non-gripper arms
 - LIBERO environment adaptation
-- Basic trajectory visualization
+- Automatic setup script
 
-### 🔄 In Progress
+### In Progress
 - VLA model fine-tuning for RBY1
 - Task success rate evaluation
 - Gripper action calibration
 
-### ❌ Known Issues
-- First few steps may show delta=0 (OSC stabilization)
-- Some tasks may require additional init_qpos tuning
+### Known Issues
+- First few steps may show delta=0 (OSC controller stabilization)
+- Some LIBERO tasks may require additional init_qpos tuning
 - Gripper timing differences from Panda
-
-## Troubleshooting
-
-### Robot not moving (delta = 0)
-- Normal for first few steps (OSC controller stabilization)
-- Ensure init_qpos produces valid EEF orientation
-
-### Wrong movement direction  
-- Check EEF coordinate frame alignment
-- Verify `input_ref_frame: "base"` in controller config
-
-### Gripper issues
-- RBY1 convention: -1 = open, +1 = close
-- Use `invert_gripper_action()` for LIBERO compatibility
 
 ## References
 
 - **MolmoAct:** https://github.com/allenai/MolmoAct
-- **LIBERO:** https://github.com/Lifelong-Robot-Learning/LIBERO  
+- **LIBERO:** https://github.com/Lifelong-Robot-Learning/LIBERO
 - **robosuite:** https://github.com/ARISE-Initiative/robosuite
 - **RBY1 SDK:** https://github.com/RainbowRobotics/rby1-sdk
 
