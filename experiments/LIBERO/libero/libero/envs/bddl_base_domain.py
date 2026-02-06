@@ -300,12 +300,14 @@ class BDDLBaseDomain(ManipulationEnv):
         super()._load_model()
         # Adjust base pose accordingly
         
-        # RBY1Single: Y offset으로 로봇 베이스를 옆으로 이동
+        # RBY1: Y offset으로 로봇 베이스를 옆으로 이동
         # 오른팔만 사용하므로 몸체와의 충돌을 피하기 위해 Y 방향 오프셋 필요
         # Panda는 y_offset 불필요
         robot_name = self.robots[0].robot_model.name
         print(f"[DEBUG] Robot name: {robot_name}")
-        if "RBY1Single" in robot_name:
+        _rby1_variants = ("RBY1Single", "RBY1RightArm", "RBY1LeftArm",
+                          "RBY1BothArms", "RBY1ArmsOnly", "RBY1FixedLowerBody", "RBY1")
+        if any(v in robot_name for v in _rby1_variants):
             y_offset = 0.45
         else:
             y_offset = 0.0

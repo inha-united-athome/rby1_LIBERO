@@ -348,7 +348,18 @@ def step(img, wrist_img, language_instruction, model, processor, unnorm_key):
     print(f"generated visual reasoning trace: {trace}")
 
 
-    action = model.parse_action(generated_text, unnorm_key=unnorm_key)
+    # Try task-specific unnorm_key first; fall back to whatever the model has
+    try:
+        action = model.parse_action(generated_text, unnorm_key=unnorm_key)
+    except ValueError:
+        available_keys = list(model.norm_stats.keys()) if hasattr(model, 'norm_stats') else []
+        print(f"Warning: unnorm_key={unnorm_key!r} not available. Available: {available_keys}")
+        if available_keys:
+            fallback_key = available_keys[0]
+            print(f"Falling back to unnorm_key={fallback_key!r}")
+            action = model.parse_action(generated_text, unnorm_key=fallback_key)
+        else:
+            raise
     print(f"generated action: {action}")
 
     if (

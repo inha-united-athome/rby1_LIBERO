@@ -14,20 +14,27 @@ from robot_utils import (
 )
 
 
-def get_libero_env(task, model_family, resolution=256):
-    """Initializes and returns the LIBERO environment, along with the task description."""
+def get_libero_env(task, model_family, resolution=256, robot_name="RBY1RightArm"):
+    """Initializes and returns the LIBERO environment, along with the task description.
+    
+    Args:
+        task: LIBERO task object
+        model_family: Model family string
+        resolution: Camera resolution (default 256)
+        robot_name: Robot to use (default "RBY1RightArm"). Set to "Panda" for original behavior.
+    """
     task_description = task.language
     task_bddl_file = os.path.join(get_libero_path("bddl_files"), task.problem_folder, task.bddl_file)
-    env_args = {"bddl_file_name": task_bddl_file, "camera_heights": resolution, "camera_widths": resolution, "camera_names": ["agentview", "robot0_eye_in_head", "robot0_eye_in_right_hand"]}
+    env_args = {
+        "bddl_file_name": task_bddl_file,
+        "camera_heights": resolution,
+        "camera_widths": resolution,
+        "camera_names": ["agentview", "robot0_eye_in_head", "robot0_eye_in_right_hand"],
+        "robots": [robot_name],
+    }
     env = OffScreenRenderEnv(**env_args)
-    print(env.env)       # OffScreenRenderEnv 내부 env
-    print(env.seed)
-    #try:
-    #    env.reset(seed=0)   # 새로운 방식
-    #except TypeError:
-    #    if hasattr(env, "seed") and callable(env.seed):
-    #        env.seed(0)    # 구버전 fallback   
-    #env.seed(0)  # IMPORTANT: seed seems to affect object positions even when using fixed initial state
+    print(f"[get_libero_env] Robot: {robot_name}")
+    print(f"[get_libero_env] Env: {env.env}")
     return env, task_description
 
 
