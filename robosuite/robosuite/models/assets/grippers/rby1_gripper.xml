@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="rby1_gripper">
+    <asset>
+        <!-- EE Body meshes -->
+        <mesh name="EE_BODY" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY.obj" />
+        <mesh name="EE_BODY_collision_0" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_0.obj" />
+        <mesh name="EE_BODY_collision_1" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_1.obj" />
+        <mesh name="EE_BODY_collision_2" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_2.obj" />
+        <mesh name="EE_BODY_collision_3" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_3.obj" />
+        <mesh name="EE_BODY_collision_4" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_4.obj" />
+        <mesh name="EE_BODY_collision_5" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_5.obj" />
+        <mesh name="EE_BODY_collision_6" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_6.obj" />
+        <mesh name="EE_BODY_collision_7" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_7.obj" />
+        <mesh name="EE_BODY_collision_8" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_8.obj" />
+        <mesh name="EE_BODY_collision_9" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_9.obj" />
+        <mesh name="EE_BODY_collision_10" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_10.obj" />
+        <mesh name="EE_BODY_collision_11" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_11.obj" />
+        <mesh name="EE_BODY_collision_12" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_12.obj" />
+        <mesh name="EE_BODY_collision_13" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_13.obj" />
+        <mesh name="EE_BODY_collision_14" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_14.obj" />
+        <mesh name="EE_BODY_collision_15" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_15.obj" />
+        <mesh name="EE_BODY_collision_16" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_16.obj" />
+        <mesh name="EE_BODY_collision_17" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_17.obj" />
+        <mesh name="EE_BODY_collision_18" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_18.obj" />
+        <mesh name="EE_BODY_collision_19" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_19.obj" />
+        <mesh name="EE_BODY_collision_20" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_20.obj" />
+        <mesh name="EE_BODY_collision_21" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_21.obj" />
+        <mesh name="EE_BODY_collision_22" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_22.obj" />
+        <mesh name="EE_BODY_collision_23" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_23.obj" />
+        <mesh name="EE_BODY_collision_24" content_type="model/obj" file="meshes/rby1_gripper/EE_BODY_collision_24.obj" />
+        <!-- Finger meshes -->
+        <mesh name="EE_FINGER_0" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_0.obj" />
+        <mesh name="EE_FINGER_1" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_1.obj" />
+        <mesh name="EE_FINGER_collision_0" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_collision_0.obj" />
+        <mesh name="EE_FINGER_collision_1" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_collision_1.obj" />
+        <mesh name="EE_FINGER_collision_2" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_collision_2.obj" />
+        <mesh name="EE_FINGER_collision_3" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_collision_3.obj" />
+        <mesh name="EE_FINGER_collision_4" content_type="model/obj" file="meshes/rby1_gripper/EE_FINGER_collision_4.obj" />
+        <!-- Materials -->
+        <material name="ee_body_mat" specular="1" shininess="0.2" rgba="0.27451 0.27451 0.27451 1" />
+        <material name="finger_silver" specular="0" shininess="0.3" rgba="0.74902 0.74902 0.74902 1" />
+        <material name="finger_dark" specular="0.27451" shininess="1" rgba="0.27451 0.27451 0.27451 1" />
+    </asset>
+    <actuator>
+        <general name="finger_act" joint="gripper_finger_2" biastype="none" gainprm="1" />
+    </actuator>
+    <equality>
+        <joint name="finger_coupling" joint1="gripper_finger_1" joint2="gripper_finger_2" polycoef="0 -1 0 0 0" />
+    </equality>
+    <worldbody>
+        <body name="rby1_gripper_base" pos="0 0 0">
+            <site name="ft_frame" pos="0 0 0" size="0.01 0.01 0.01" rgba="1 0 0 1" type="sphere" group="1" />
+            <body name="eef" pos="0 0 0" quat="1 0 0 0">
+                <!-- EE Body visual mesh -->
+                <geom type="mesh" mesh="EE_BODY" material="ee_body_mat" contype="0" conaffinity="0" group="1" name="ee_body_visual" />
+                <!-- EE Body collision meshes (invisible) -->
+                <geom type="mesh" mesh="EE_BODY_collision_0" group="0" rgba="0 0 0 0" name="ee_col_0" />
+                <geom type="mesh" mesh="EE_BODY_collision_1" group="0" rgba="0 0 0 0" name="ee_col_1" />
+                <geom type="mesh" mesh="EE_BODY_collision_2" group="0" rgba="0 0 0 0" name="ee_col_2" />
+                <geom type="mesh" mesh="EE_BODY_collision_3" group="0" rgba="0 0 0 0" name="ee_col_3" />
+                <geom type="mesh" mesh="EE_BODY_collision_4" group="0" rgba="0 0 0 0" name="ee_col_4" />
+                <geom type="mesh" mesh="EE_BODY_collision_5" group="0" rgba="0 0 0 0" name="ee_col_5" />
+                <geom type="mesh" mesh="EE_BODY_collision_6" group="0" rgba="0 0 0 0" name="ee_col_6" />
+                <geom type="mesh" mesh="EE_BODY_collision_7" group="0" rgba="0 0 0 0" name="ee_col_7" />
+                <geom type="mesh" mesh="EE_BODY_collision_8" group="0" rgba="0 0 0 0" name="ee_col_8" />
+                <geom type="mesh" mesh="EE_BODY_collision_9" group="0" rgba="0 0 0 0" name="ee_col_9" />
+                <geom type="mesh" mesh="EE_BODY_collision_10" group="0" rgba="0 0 0 0" name="ee_col_10" />
+                <geom type="mesh" mesh="EE_BODY_collision_11" group="0" rgba="0 0 0 0" name="ee_col_11" />
+                <geom type="mesh" mesh="EE_BODY_collision_12" group="0" rgba="0 0 0 0" name="ee_col_12" />
+                <geom type="mesh" mesh="EE_BODY_collision_13" group="0" rgba="0 0 0 0" name="ee_col_13" />
+                <geom type="mesh" mesh="EE_BODY_collision_14" group="0" rgba="0 0 0 0" name="ee_col_14" />
+                <geom type="mesh" mesh="EE_BODY_collision_15" group="0" rgba="0 0 0 0" name="ee_col_15" />
+                <geom type="mesh" mesh="EE_BODY_collision_16" group="0" rgba="0 0 0 0" name="ee_col_16" />
+                <geom type="mesh" mesh="EE_BODY_collision_17" group="0" rgba="0 0 0 0" name="ee_col_17" />
+                <geom type="mesh" mesh="EE_BODY_collision_18" group="0" rgba="0 0 0 0" name="ee_col_18" />
+                <geom type="mesh" mesh="EE_BODY_collision_19" group="0" rgba="0 0 0 0" name="ee_col_19" />
+                <geom type="mesh" mesh="EE_BODY_collision_20" group="0" rgba="0 0 0 0" name="ee_col_20" />
+                <geom type="mesh" mesh="EE_BODY_collision_21" group="0" rgba="0 0 0 0" name="ee_col_21" />
+                <geom type="mesh" mesh="EE_BODY_collision_22" group="0" rgba="0 0 0 0" name="ee_col_22" />
+                <geom type="mesh" mesh="EE_BODY_collision_23" group="0" rgba="0 0 0 0" name="ee_col_23" />
+                <geom type="mesh" mesh="EE_BODY_collision_24" group="0" rgba="0 0 0 0" name="ee_col_24" />
+                <!-- Sites for robosuite -->
+                <site name="grip_site" pos="0 0 -0.074" size="0.01" rgba="0 1 0 0.3" />
+                <site name="grip_site_cylinder" pos="0 0 -0.074" size="0.005 0.04" rgba="0 1 0 0.3" type="cylinder" />
+                <site name="ee" pos="0 0 -0.074" size="0.01" group="1" />
+                <site name="ee_x" pos="0.1 0 -0.074" size="0.005" rgba="1 0 0 0" group="1" />
+                <site name="ee_y" pos="0 0.1 -0.074" size="0.005" rgba="0 1 0 0" group="1" />
+                <site name="ee_z" pos="0 0 0.026" size="0.005" rgba="0 0 1 0" group="1" />
+                <!-- Finger 1 (positive X) -->
+                <body name="finger_1" pos="0.003 0 -0.074">
+                    <inertial pos="0.003 0 -0.026" quat="0.999784 0 0.0208044 0" mass="0.03327" diaginertia="1.23275e-05 1.066e-05 2.22251e-06" />
+                    <joint name="gripper_finger_1" pos="0 0 0" axis="-1 0 0" type="slide" limited="true" range="-0.05 0" />
+                    <!-- Visual finger meshes -->
+                    <geom type="mesh" mesh="EE_FINGER_0" material="finger_silver" contype="0" conaffinity="0" group="1" name="finger_1_vis_0" />
+                    <geom type="mesh" mesh="EE_FINGER_1" material="finger_dark" contype="0" conaffinity="0" group="1" name="finger_1_vis_1" />
+                    <!-- Collision finger meshes -->
+                    <geom type="mesh" mesh="EE_FINGER_collision_0" group="0" rgba="0 0 0 0" name="finger_1_col_0" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_1" group="0" rgba="0 0 0 0" name="finger_1_col_1" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_2" group="0" rgba="0 0 0 0" name="finger_1_col_2" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_3" group="0" rgba="0 0 0 0" name="finger_1_col_3" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_4" group="0" rgba="0 0 0 0" name="finger_1_col_4" condim="4" friction="1 0.05 0.001" />
+                </body>
+                <!-- Finger 2 (negative X, mirrored) -->
+                <body name="finger_2" pos="-0.003 0 -0.074" quat="0 0 0 1">
+                    <inertial pos="0.003 0 -0.026" quat="0.999784 0 0.0208044 0" mass="0.03327" diaginertia="1.23275e-05 1.066e-05 2.22251e-06" />
+                    <joint name="gripper_finger_2" pos="0 0 0" axis="1 0 0" type="slide" limited="true" range="0 0.05" />
+                    <!-- Visual finger meshes -->
+                    <geom type="mesh" mesh="EE_FINGER_0" material="finger_silver" contype="0" conaffinity="0" group="1" name="finger_2_vis_0" />
+                    <geom type="mesh" mesh="EE_FINGER_1" material="finger_dark" contype="0" conaffinity="0" group="1" name="finger_2_vis_1" />
+                    <!-- Collision finger meshes -->
+                    <geom type="mesh" mesh="EE_FINGER_collision_0" group="0" rgba="0 0 0 0" name="finger_2_col_0" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_1" group="0" rgba="0 0 0 0" name="finger_2_col_1" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_2" group="0" rgba="0 0 0 0" name="finger_2_col_2" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_3" group="0" rgba="0 0 0 0" name="finger_2_col_3" condim="4" friction="1 0.05 0.001" />
+                    <geom type="mesh" mesh="EE_FINGER_collision_4" group="0" rgba="0 0 0 0" name="finger_2_col_4" condim="4" friction="1 0.05 0.001" />
+                </body>
+            </body>
+        </body>
+    </worldbody>
+    <sensor>
+        <force name="force_ee" site="ft_frame" />
+        <torque name="torque_ee" site="ft_frame" />
+    </sensor>
+</mujoco>
